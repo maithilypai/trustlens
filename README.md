@@ -121,3 +121,5 @@ Interactive API documentation (Swagger UI) is available at:
 - **Zero Credential Handling**: The app never prompts for passwords, bank credentials, or OTP codes.
 - **No Direct Payments**: The application does not execute financial transactions.
 - **Secrets Management**: API keys and environment variables are strictly managed through `.env` files and excluded from version control.
+# trustlens
+AI-assisted scam link detection and digital safety Android application
