@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">TRUSTLENS</string>
+    <string name="app_tagline">Don\'t just trust the message. Verify the link.</string>
+    <string name="app_description">AI-Assisted Scam Link Detection and Real-Time Threat Analysis</string>
+    <string name="url_input_placeholder">Enter or paste URL (https://...)</string>
+    <string name="btn_analyze">Analyze Link</string>
+    <string name="btn_demo">Demo Mode</string>
+    <string name="disclaimer_title">Safety Disclaimer</string>
+    <string name="disclaimer_body">Link verification evaluates structural heuristics and threat intelligence. No automated system can guarantee 100% safety. Always verify unfamiliar senders independently.</string>
+    <string name="simulated_warning_banner">SIMULATED DEMONSTRATION RESULT — NOT A LIVE THREAT DETECTION</string>
+    <string name="btn_clear">Clear</string>
+    <string name="btn_paste">Paste</string>
+    <string name="btn_retry">Try Again</string>
+    <string name="btn_back_safety">Go Back to Safety</string>
+    <string name="btn_view_details">View Detailed Findings</string>
+</resources>

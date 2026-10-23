@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!--
+      Cleartext HTTP is permitted ONLY for local development hosts and the Android Emulator loopback.
+      In production, all network traffic is strictly enforced to use HTTPS (TLS).
+    -->
+    <domain-config cleartextTrafficPermitted="true">
+        <!-- Android Emulator host alias -->
+        <domain includeSubdomains="false">10.0.2.2</domain>
+        <!-- Local device loopback -->
+        <domain includeSubdomains="false">127.0.0.1</domain>
+        <domain includeSubdomains="false">localhost</domain>
+        <!-- Common local private development subnets for physical device WiFi testing -->
+        <domain includeSubdomains="true">192.168.1.0/24</domain>
+        <domain includeSubdomains="true">10.0.0.0/8</domain>
+    </domain-config>
+
+    <!-- Production default: Enforce secure HTTPS for all external domains -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>
