@@ -44,12 +44,12 @@ class TrustlensRepositoryImpl(
                 val displayMsg = error.message ?: "Analysis failed with HTTP ${response.code()}"
                 NetworkResult.Error(
                     message = displayMsg,
-                    code = error.code,
+                    code = error.code ?: "HTTP_${response.code()}",
                     statusCode = response.code()
                 )
             }
-        } catch (e: Exception) {
-            handleException(e)
+        } catch (t: Throwable) {
+            handleException(t)
         }
     }
 
@@ -64,12 +64,12 @@ class TrustlensRepositoryImpl(
                     val error = RetrofitClient.parseError(response)
                     NetworkResult.Error(
                         message = error.message ?: "Demo scenario failed with HTTP ${response.code()}",
-                        code = error.code,
+                        code = error.code ?: "HTTP_${response.code()}",
                         statusCode = response.code()
                     )
                 }
-            } catch (e: Exception) {
-                handleException(e)
+            } catch (t: Throwable) {
+                handleException(t)
             }
         }
 
@@ -81,12 +81,19 @@ class TrustlensRepositoryImpl(
             } else {
                 NetworkResult.Error("Backend health check failed (${response.code()})")
             }
-        } catch (e: Exception) {
-            handleException(e)
+        } catch (t: Throwable) {
+            handleException(t)
         }
     }
 
-    private fun handleException(e: Exception): NetworkResult.Error {
+    private fun handleException(e: Throwable): NetworkResult.Error {
+        val message = e.localizedMessage ?: e.message ?: ""
+        if (message.contains("CLEARTEXT", ignoreCase = true) || message.contains("Cleartext", ignoreCase = true)) {
+            return NetworkResult.Error(
+                message = "Cleartext HTTP traffic is not permitted by policy. Ensure network security configuration allows cleartext for local development.",
+                code = "CLEARTEXT_NOT_PERMITTED"
+            )
+        }
         return when (e) {
             is SocketTimeoutException -> NetworkResult.Error(
                 message = "Connection timed out. The backend server took too long to respond.",

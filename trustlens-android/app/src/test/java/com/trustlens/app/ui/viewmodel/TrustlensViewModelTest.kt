@@ -32,12 +32,16 @@ class TrustlensViewModelTest {
 
     private class FakeRepository : TrustlensRepository {
         var returnError = false
+        var throwException = false
         var cannedResponse: AnalyzeResponse? = null
         var lastAnalyzedUrl: String? = null
         var lastDemoScenario: DemoScenario? = null
         private var currentBaseUrl: String = "http://10.0.2.2:8000/"
 
         override suspend fun analyzeUrl(url: String): NetworkResult<AnalyzeResponse> {
+            if (throwException) {
+                throw RuntimeException("Fatal low-level exception")
+            }
             lastAnalyzedUrl = url
             return if (returnError) {
                 NetworkResult.Error("Simulated network timeout", code = "TIMEOUT")
@@ -211,5 +215,20 @@ class TrustlensViewModelTest {
         assertEquals(DemoScenario.THREAT_DETECTED, fakeRepository.lastDemoScenario)
         assertNotNull(state.result)
         assertTrue(state.result!!.isSimulated)
+    }
+
+    @Test
+    fun testUnexpectedExceptionLeavesLoadingFalseAndEmitsError() = runTest {
+        fakeRepository.throwException = true
+        viewModel.onUrlInputChanged("https://crash-test.com")
+        viewModel.analyzeUrl()
+
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        val state = viewModel.uiState.value
+        assertFalse(state.isLoading)
+        assertNull(state.result)
+        assertEquals("UNEXPECTED_ERROR", state.errorCode)
+        assertTrue(state.errorMessage!!.contains("Fatal low-level exception"))
     }
 }

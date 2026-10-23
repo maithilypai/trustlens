@@ -47,6 +47,8 @@ class TrustlensViewModel(
     }
 
     fun analyzeUrl(url: String = _uiState.value.urlInput) {
+        if (_uiState.value.isLoading) return
+
         val target = url.trim()
         if (target.isEmpty()) {
             _uiState.update {
@@ -75,36 +77,56 @@ class TrustlensViewModel(
         }
 
         viewModelScope.launch {
-            when (val result = repository.analyzeUrl(candidate)) {
-                is NetworkResult.Success -> {
-                    val response = result.data
-                    val showWarning = response.assessment == RiskCategory.CONFIRMED_THREAT
-                    _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            result = response,
-                            isWarningDialogVisible = showWarning,
-                            errorMessage = null
-                        )
+            try {
+                when (val result = repository.analyzeUrl(candidate)) {
+                    is NetworkResult.Success -> {
+                        val response = result.data
+                        val showWarning = response.assessment == RiskCategory.CONFIRMED_THREAT
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                result = response,
+                                isWarningDialogVisible = showWarning,
+                                errorMessage = null,
+                                errorCode = null
+                            )
+                        }
+                    }
+                    is NetworkResult.Error -> {
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                errorMessage = result.message,
+                                errorCode = result.code,
+                                result = null
+                            )
+                        }
+                    }
+                    NetworkResult.Loading -> {
+                        _uiState.update { it.copy(isLoading = true) }
                     }
                 }
-                is NetworkResult.Error -> {
-                    _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            errorMessage = result.message,
-                            errorCode = result.code
-                        )
-                    }
+            } catch (t: Throwable) {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = "An unexpected error occurred: ${t.localizedMessage ?: "Unknown failure"}",
+                        errorCode = "UNEXPECTED_ERROR",
+                        result = null
+                    )
                 }
-                NetworkResult.Loading -> {
-                    _uiState.update { it.copy(isLoading = true) }
+            } finally {
+                // Guaranteed safety: ensure the loading indicator is never left active
+                _uiState.update {
+                    if (it.isLoading) it.copy(isLoading = false) else it
                 }
             }
         }
     }
 
     fun runDemoScenario(scenario: DemoScenario) {
+        if (_uiState.value.isLoading) return
+
         _uiState.update {
             it.copy(
                 isLoading = true,
@@ -116,30 +138,49 @@ class TrustlensViewModel(
         }
 
         viewModelScope.launch {
-            when (val result = repository.runDemo(scenario)) {
-                is NetworkResult.Success -> {
-                    val response = result.data
-                    val showWarning = response.assessment == RiskCategory.CONFIRMED_THREAT
-                    _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            result = response,
-                            isWarningDialogVisible = showWarning,
-                            urlInput = response.urlValidation.normalizedUrl
-                        )
+            try {
+                when (val result = repository.runDemo(scenario)) {
+                    is NetworkResult.Success -> {
+                        val response = result.data
+                        val showWarning = response.assessment == RiskCategory.CONFIRMED_THREAT
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                result = response,
+                                isWarningDialogVisible = showWarning,
+                                urlInput = response.urlValidation.normalizedUrl,
+                                errorMessage = null,
+                                errorCode = null
+                            )
+                        }
+                    }
+                    is NetworkResult.Error -> {
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                errorMessage = result.message,
+                                errorCode = result.code,
+                                result = null
+                            )
+                        }
+                    }
+                    NetworkResult.Loading -> {
+                        _uiState.update { it.copy(isLoading = true) }
                     }
                 }
-                is NetworkResult.Error -> {
-                    _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            errorMessage = result.message,
-                            errorCode = result.code
-                        )
-                    }
+            } catch (t: Throwable) {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = "Demo execution failed: ${t.localizedMessage ?: "Unknown failure"}",
+                        errorCode = "DEMO_ERROR",
+                        result = null
+                    )
                 }
-                NetworkResult.Loading -> {
-                    _uiState.update { it.copy(isLoading = true) }
+            } finally {
+                // Guaranteed safety: ensure the loading indicator is never left active
+                _uiState.update {
+                    if (it.isLoading) it.copy(isLoading = false) else it
                 }
             }
         }

@@ -78,7 +78,15 @@ object RetrofitClient {
         return try {
             val errorBody = response.errorBody()?.string()
             if (!errorBody.isNullOrBlank()) {
-                gson.fromJson(errorBody, ApiErrorResponse::class.java)
+                val parsed = gson.fromJson(errorBody, ApiErrorResponse::class.java)
+                if (parsed != null) {
+                    val resolvedMsg = parsed.message
+                        ?: parsed.error
+                        ?: "Server returned HTTP ${response.code()}"
+                    parsed.copy(message = resolvedMsg)
+                } else {
+                    ApiErrorResponse(message = "Server returned HTTP ${response.code()}")
+                }
             } else {
                 ApiErrorResponse(message = "Server returned HTTP ${response.code()}")
             }
