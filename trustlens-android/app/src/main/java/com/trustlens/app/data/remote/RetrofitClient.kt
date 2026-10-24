@@ -2,6 +2,7 @@ package com.trustlens.app.data.remote
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import com.trustlens.app.BuildConfig
 import com.trustlens.app.data.model.ApiErrorResponse
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -13,14 +14,18 @@ import java.util.concurrent.TimeUnit
 /**
  * Singleton networking provider for TRUSTLENS.
  *
- * Defaults to `http://10.0.2.2:8000/` which is the standard alias used by the Android
- * Emulator to communicate with `localhost:8000` on the development host.
+ * Configured with separate Development (Emulator) and Production (Render HTTPS) URLs.
+ * Defaults to `BuildConfig.DEFAULT_BASE_URL` (http://10.0.2.2:8000/ in debug, Render URL in release).
  */
 object RetrofitClient {
 
+    val DEV_BASE_URL: String = BuildConfig.DEV_BASE_URL
+    val PROD_BASE_URL: String = BuildConfig.PROD_BASE_URL
+    val DEFAULT_BASE_URL: String = BuildConfig.DEFAULT_BASE_URL
+
     const val DEFAULT_EMULATOR_BASE_URL = "http://10.0.2.2:8000/"
 
-    private var currentBaseUrl: String = DEFAULT_EMULATOR_BASE_URL
+    private var currentBaseUrl: String = DEFAULT_BASE_URL
     private var apiService: TrustlensApiService? = null
 
     val gson: Gson = GsonBuilder().setLenient().create()

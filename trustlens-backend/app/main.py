@@ -75,10 +75,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     # Configure deliberate CORS permissions
     # In production, wildcard origins are avoided to protect mobile-backend communication integrity
+    has_wildcard = "*" in cfg.CORS_ORIGINS
     app.add_middleware(
         CORSMiddleware,
         allow_origins=cfg.CORS_ORIGINS,
-        allow_credentials=True,
+        allow_credentials=not has_wildcard,
         allow_methods=["GET", "POST", "OPTIONS"],
         allow_headers=["*"],
     )
@@ -359,3 +360,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
 
 app = create_app()
+
+if __name__ == "__main__":
+    import os
+    import uvicorn
+
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run("app.main:app", host="0.0.0.0", port=port, reload=False)

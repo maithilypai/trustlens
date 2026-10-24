@@ -1,0 +1,30 @@
+# ==============================================================================
+# TRUSTLENS - Render Blueprint Specification
+# ==============================================================================
+# Deploy via Render Dashboard: "New" -> "Blueprint" -> Connect repository
+# Or deploy as a standalone Web Service pointing to 'trustlens-backend' rootDir.
+# ==============================================================================
+
+services:
+  - type: web
+    name: trustlens-backend
+    runtime: python
+    rootDir: trustlens-backend
+    plan: free
+    region: oregon
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.12
+      - key: ENVIRONMENT
+        value: production
+      - key: DEBUG
+        value: "false"
+      - key: CORS_ORIGINS
+        value: "*"
+      - key: MAX_URL_LENGTH
+        value: "2048"
+      - key: SAFE_BROWSING_API_KEY
+        sync: false

@@ -590,6 +590,14 @@ class TrustlensViewModel(
 
     fun updateBaseUrl(newUrl: String) {
         repository.updateBaseUrl(newUrl)
+        try {
+            com.trustlens.app.TrustlensApplication.instance?.let { app ->
+                val prefs = app.getSharedPreferences("trustlens_config", android.content.Context.MODE_PRIVATE)
+                prefs.edit().putString("backend_base_url", repository.getBaseUrl()).apply()
+            }
+        } catch (_: Exception) {
+            // Ignored in unit testing where application context is not present
+        }
         _uiState.update {
             it.copy(
                 currentBaseUrl = repository.getBaseUrl(),

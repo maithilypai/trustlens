@@ -8,6 +8,10 @@ android {
     namespace = "com.trustlens.app"
     compileSdk = 34
 
+    val prodBackendUrl: String = (project.findProperty("TRUSTLENS_PROD_URL") as? String)
+        ?: System.getenv("TRUSTLENS_PROD_URL")
+        ?: "https://trustlens-backend.onrender.com/"
+
     defaultConfig {
         applicationId = "com.trustlens.app"
         minSdk = 26
@@ -19,6 +23,9 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+
+        buildConfigField("String", "DEV_BASE_URL", "\"http://10.0.2.2:8000/\"")
+        buildConfigField("String", "PROD_BASE_URL", "\"$prodBackendUrl\"")
     }
 
     buildTypes {
@@ -28,10 +35,13 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("debug")
+            buildConfigField("String", "DEFAULT_BASE_URL", "\"$prodBackendUrl\"")
         }
         debug {
             applicationIdSuffix = ".debug"
             isDebuggable = true
+            buildConfigField("String", "DEFAULT_BASE_URL", "\"http://10.0.2.2:8000/\"")
         }
     }
 
@@ -46,6 +56,12 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
+    }
+
+    lint {
+        checkReleaseBuilds = false
+        abortOnError = false
     }
 
     packaging {

@@ -596,6 +596,30 @@ fun HomeScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
 
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        OutlinedButton(
+                            onClick = { customBaseUrlInput = com.trustlens.app.data.remote.RetrofitClient.DEV_BASE_URL },
+                            shape = RoundedCornerShape(8.dp),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, NavyBorder),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text("Emulator", color = CyanAccent, fontSize = 12.sp)
+                        }
+                        OutlinedButton(
+                            onClick = { customBaseUrlInput = com.trustlens.app.data.remote.RetrofitClient.PROD_BASE_URL },
+                            shape = RoundedCornerShape(8.dp),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, NavyBorder),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text("Production", color = CyanAccent, fontSize = 12.sp)
+                        }
+                    }
+
                     Spacer(modifier = Modifier.height(18.dp))
 
                     Row(
