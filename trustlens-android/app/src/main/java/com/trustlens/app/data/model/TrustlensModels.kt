@@ -67,13 +67,47 @@ enum class ThreatIntelStatus {
  */
 enum class DemoScenario(val displayName: String, val description: String) {
     @SerializedName("threat_detected")
-    THREAT_DETECTED("Threat Detected", "Simulates an active phishing & malware detection match."),
+    THREAT_DETECTED("Threat Detected (Phishing)", "Simulates an active phishing & malware detection match."),
+
+    @SerializedName("scam_link")
+    SCAM_LINK("Deceptive Brand Phishing", "Simulates lookalike brand domain targeting banking credentials."),
+
+    @SerializedName("parcel_sms")
+    PARCEL_SMS("Postal Fee Smishing", "Simulates urgent postal customs fee scam with deceptive link."),
+
+    @SerializedName("otp_theft")
+    OTP_THEFT("Bank Wire OTP Theft", "Simulates urgent bank wire transfer social engineering lure."),
+
+    @SerializedName("fake_payment")
+    FAKE_PAYMENT("Fake Supplier Invoice", "Simulates urgent supplier invoice redirection scam."),
+
+    @SerializedName("qr_scam")
+    QR_SCAM("Quishing / QR Trap", "Simulates deceptive payment QR sticker overlay on physical signage."),
+
+    @SerializedName("fraud_call")
+    FRAUD_CALL("Fraud Department Alert", "Simulates bank security department impersonation lure."),
 
     @SerializedName("no_known_threat")
     NO_KNOWN_THREAT("No Known Threat", "Simulates clean heuristics and verified reputation check."),
 
     @SerializedName("inconclusive")
-    INCONCLUSIVE("Inconclusive", "Simulates unverified site when threat intelligence is unreachable.")
+    INCONCLUSIVE("Inconclusive", "Simulates unverified site when threat intelligence is unreachable."),
+
+    @SerializedName("comparison")
+    COMPARISON("Deceptive vs Legitimate", "Side-by-side contrast of phishing lookalike vs benign test domain.")
+}
+
+/**
+ * Navigation destinations across TRUSTLENS application screens.
+ */
+enum class ScreenDestination {
+    HOME,
+    SAFE_BROWSER,
+    MESSAGE_ANALYZER,
+    QR_INSPECTOR,
+    DEMOS,
+    PRIVACY_INFO,
+    RESULT
 }
 
 /**
@@ -164,4 +198,60 @@ data class ApiErrorResponse(
     @SerializedName("code") val code: String? = null,
     @SerializedName("message") val message: String? = null,
     @SerializedName("details") val details: Any? = null
+)
+
+/**
+ * Request payload for SMS or suspicious message text inspection.
+ */
+data class MessageAnalyzeRequest(
+    @SerializedName("message") val message: String,
+    @SerializedName("sender") val sender: String? = null
+)
+
+/**
+ * Comprehensive analysis report for an SMS or text message.
+ */
+data class MessageAnalyzeResponse(
+    @SerializedName("request_id") val requestId: String,
+    @SerializedName("assessment") val assessment: RiskCategory,
+    @SerializedName("is_simulated") val isSimulated: Boolean = false,
+    @SerializedName("message_length") val messageLength: Int = 0,
+    @SerializedName("detected_urls") val detectedUrls: List<String> = emptyList(),
+    @SerializedName("findings") val findings: List<Finding> = emptyList(),
+    @SerializedName("embedded_url_analyses") val embeddedUrlAnalyses: List<Any> = emptyList(),
+    @SerializedName("summary") val summary: String,
+    @SerializedName("recommended_actions") val recommendedActions: List<String> = emptyList()
+)
+
+/**
+ * Request payload for decoded QR code payload string inspection.
+ */
+data class QrAnalyzeRequest(
+    @SerializedName("payload") val payload: String
+)
+
+/**
+ * Comprehensive analysis report for decoded QR code payload.
+ */
+data class QrAnalyzeResponse(
+    @SerializedName("request_id") val requestId: String,
+    @SerializedName("payload_type") val payloadType: String,
+    @SerializedName("assessment") val assessment: RiskCategory,
+    @SerializedName("is_simulated") val isSimulated: Boolean = false,
+    @SerializedName("raw_payload") val rawPayload: String,
+    @SerializedName("findings") val findings: List<Finding> = emptyList(),
+    @SerializedName("url_analysis") val urlAnalysis: Any? = null,
+    @SerializedName("summary") val summary: String,
+    @SerializedName("recommended_actions") val recommendedActions: List<String> = emptyList()
+)
+
+/**
+ * Side-by-side comparison response contrasting deceptive phishing vs benign test domain.
+ */
+data class ComparisonDemoResponse(
+    @SerializedName("is_simulated") val isSimulated: Boolean = true,
+    @SerializedName("simulated_threat") val simulatedThreat: AnalyzeResponse,
+    @SerializedName("harmless_url") val harmlessUrl: AnalyzeResponse,
+    @SerializedName("comparison_summary") val comparisonSummary: String,
+    @SerializedName("key_differences") val keyDifferences: List<String> = emptyList()
 )

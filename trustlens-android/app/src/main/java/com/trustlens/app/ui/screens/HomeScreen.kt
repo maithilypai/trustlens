@@ -3,6 +3,7 @@ package com.trustlens.app.ui.screens
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,16 +16,21 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Link
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Message
+import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material.icons.filled.Science
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Shield
@@ -52,7 +58,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -61,8 +69,10 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.trustlens.app.data.model.ScreenDestination
 import com.trustlens.app.ui.components.DemoScenarioPicker
 import com.trustlens.app.ui.components.TrustlensHeader
+import com.trustlens.app.ui.theme.StatusWarningAmber
 import com.trustlens.app.ui.theme.BlueAccent
 import com.trustlens.app.ui.theme.CyanAccent
 import com.trustlens.app.ui.theme.NavyBackground
@@ -70,6 +80,7 @@ import com.trustlens.app.ui.theme.NavyBorder
 import com.trustlens.app.ui.theme.NavyCardElevated
 import com.trustlens.app.ui.theme.NavySurface
 import com.trustlens.app.ui.theme.NavySurfaceVariant
+import com.trustlens.app.ui.theme.StatusCleanEmerald
 import com.trustlens.app.ui.theme.StatusThreatRed
 import com.trustlens.app.ui.theme.TextMuted
 import com.trustlens.app.ui.theme.TextPrimary
@@ -100,9 +111,11 @@ fun HomeScreen(
                 .padding(innerPadding)
                 .verticalScroll(scrollState)
         ) {
-            // Header with branding and tagline
+            // Header with branding, tagline, and backend status badge
             TrustlensHeader(
-                onSettingsClick = { viewModel.toggleSettings(true) }
+                onSettingsClick = { viewModel.toggleSettings(true) },
+                backendStatus = uiState.backendStatus,
+                isThreatIntelActive = uiState.isThreatIntelActive
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -112,7 +125,95 @@ fun HomeScreen(
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp)
             ) {
-                // URL Input Card
+                // FEATURED: Safe Browser Launch Card (Highest Priority)
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { viewModel.navigateTo(ScreenDestination.SAFE_BROWSER) },
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = NavySurface
+                    ),
+                    border = androidx.compose.foundation.BorderStroke(
+                        width = 1.5.dp,
+                        brush = Brush.horizontalGradient(listOf(CyanAccent, BlueAccent))
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(18.dp)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(38.dp)
+                                        .clip(RoundedCornerShape(10.dp))
+                                        .background(CyanAccent.copy(alpha = 0.15f)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Shield,
+                                        contentDescription = "Safe Browser",
+                                        tint = CyanAccent,
+                                        modifier = Modifier.size(22.dp)
+                                    )
+                                }
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Column {
+                                    Text(
+                                        text = "SAFE BROWSER",
+                                        style = MaterialTheme.typography.titleMedium.copy(
+                                            fontWeight = FontWeight.ExtraBold,
+                                            color = TextPrimary
+                                        )
+                                    )
+                                    Text(
+                                        text = "Pre-navigation threat checking",
+                                        style = MaterialTheme.typography.bodySmall.copy(
+                                            color = CyanAccent,
+                                            fontWeight = FontWeight.Medium
+                                        )
+                                    )
+                                }
+                            }
+
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(CyanAccent)
+                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                            ) {
+                                Text(
+                                    text = "OPEN",
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        color = NavyBackground,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        Text(
+                            text = "Browse the web with active threat interception. Scans every destination before rendering to block phishing, malware, and credential harvesters.",
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                color = TextSecondary,
+                                lineHeight = 18.sp
+                            )
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(18.dp))
+
+                // Instant URL Quick Analyzer Card
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
@@ -130,7 +231,7 @@ fun HomeScreen(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Text(
-                                text = "VERIFY TARGET LINK",
+                                text = "QUICK LINK SCANNER",
                                 style = MaterialTheme.typography.labelSmall.copy(
                                     fontWeight = FontWeight.Bold,
                                     letterSpacing = 1.sp,
@@ -139,37 +240,38 @@ fun HomeScreen(
                             )
 
                             // Quick action: Paste from Clipboard
-                            Row {
-                                OutlinedButton(
-                                    onClick = {
-                                        val clip = clipboardManager.getText()?.text
-                                        if (!clip.isNullOrBlank()) {
-                                            viewModel.pasteFromClipboard(clip)
-                                            Toast.makeText(context, "Pasted from clipboard", Toast.LENGTH_SHORT).show()
-                                        } else {
-                                            Toast.makeText(context, "Clipboard is empty", Toast.LENGTH_SHORT).show()
-                                        }
-                                    },
-                                    shape = RoundedCornerShape(8.dp),
-                                    border = androidx.compose.foundation.BorderStroke(1.dp, NavyBorder),
-                                    contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                                        horizontal = 10.dp,
-                                        vertical = 4.dp
-                                    ),
-                                    modifier = Modifier.height(32.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.ContentPaste,
-                                        contentDescription = null,
-                                        tint = TextSecondary,
-                                        modifier = Modifier.size(14.dp)
+                            OutlinedButton(
+                                onClick = {
+                                    val clip = clipboardManager.getText()?.text
+                                    if (!clip.isNullOrBlank()) {
+                                        viewModel.pasteFromClipboard(clip)
+                                        Toast.makeText(context, "Pasted link from clipboard", Toast.LENGTH_SHORT).show()
+                                    } else {
+                                        Toast.makeText(context, "Clipboard is empty", Toast.LENGTH_SHORT).show()
+                                    }
+                                },
+                                shape = RoundedCornerShape(8.dp),
+                                border = androidx.compose.foundation.BorderStroke(1.dp, NavyBorder),
+                                contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                                    horizontal = 10.dp,
+                                    vertical = 4.dp
+                                ),
+                                modifier = Modifier.height(30.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.ContentPaste,
+                                    contentDescription = null,
+                                    tint = TextSecondary,
+                                    modifier = Modifier.size(13.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = "Paste",
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        color = TextSecondary,
+                                        fontSize = 11.sp
                                     )
-                                    Spacer(modifier = Modifier.width(4.dp))
-                                    Text(
-                                        text = "Paste",
-                                        style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
-                                    )
-                                }
+                                )
                             }
                         }
 
@@ -227,7 +329,7 @@ fun HomeScreen(
                             modifier = Modifier.fillMaxWidth()
                         )
 
-                        Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(14.dp))
 
                         // Primary Analyze Button
                         Button(
@@ -238,7 +340,7 @@ fun HomeScreen(
                             enabled = !uiState.isLoading,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(52.dp),
+                                .height(50.dp),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = CyanAccent,
                                 disabledContainerColor = CyanAccent.copy(alpha = 0.5f)
@@ -247,7 +349,7 @@ fun HomeScreen(
                         ) {
                             if (uiState.isLoading) {
                                 CircularProgressIndicator(
-                                    modifier = Modifier.size(22.dp),
+                                    modifier = Modifier.size(20.dp),
                                     color = NavyBackground,
                                     strokeWidth = 2.5.dp
                                 )
@@ -264,50 +366,20 @@ fun HomeScreen(
                                     imageVector = Icons.Default.Search,
                                     contentDescription = null,
                                     tint = NavyBackground,
-                                    modifier = Modifier.size(20.dp)
+                                    modifier = Modifier.size(19.dp)
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    text = "Analyze Link",
+                                    text = "Inspect Link",
                                     style = MaterialTheme.typography.labelLarge.copy(
                                         color = NavyBackground,
                                         fontWeight = FontWeight.Bold,
-                                        fontSize = 16.sp
+                                        fontSize = 15.sp
                                     )
                                 )
                             }
                         }
                     }
-                }
-
-                Spacer(modifier = Modifier.height(14.dp))
-
-                // Demo Mode Button
-                OutlinedButton(
-                    onClick = { viewModel.toggleDemoPicker(true) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, BlueAccent.copy(alpha = 0.7f)),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        containerColor = NavySurface.copy(alpha = 0.6f)
-                    )
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Science,
-                        contentDescription = null,
-                        tint = BlueAccent,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Demo Mode (Simulate Scenarios)",
-                        style = MaterialTheme.typography.labelMedium.copy(
-                            color = BlueAccent,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    )
                 }
 
                 // Error Banner
@@ -333,7 +405,7 @@ fun HomeScreen(
                             Spacer(modifier = Modifier.width(10.dp))
                             Column {
                                 Text(
-                                    text = "Analysis Request Notice",
+                                    text = "Analysis Notice",
                                     style = MaterialTheme.typography.titleMedium.copy(
                                         fontWeight = FontWeight.Bold,
                                         color = StatusThreatRed,
@@ -355,47 +427,112 @@ fun HomeScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Safety Disclaimer Card
+                // MORE PROTECTION CAPABILITIES SECTION
+                Text(
+                    text = "PROTECTION MODULES",
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.2.sp,
+                        color = CyanAccent
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Module Grid / List
+                ModuleNavigationCard(
+                    title = "Message & SMS Analyzer",
+                    subtitle = "Detect OTP theft, delivery fees, and coercive urgency",
+                    icon = Icons.Default.Message,
+                    iconTint = BlueAccent,
+                    onClick = { viewModel.navigateTo(ScreenDestination.MESSAGE_ANALYZER) }
+                )
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                ModuleNavigationCard(
+                    title = "QR Code & Quishing Inspector",
+                    subtitle = "Inspect QR payloads, deceptive URLs, and rogue UPI transfers",
+                    icon = Icons.Default.QrCode,
+                    iconTint = CyanAccent,
+                    onClick = { viewModel.navigateTo(ScreenDestination.QR_INSPECTOR) }
+                )
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                ModuleNavigationCard(
+                    title = "Interactive Scam Demos",
+                    subtitle = "6 realistic simulations & deceptive vs legitimate comparison",
+                    icon = Icons.Default.Science,
+                    iconTint = StatusWarningAmber,
+                    onClick = { viewModel.navigateTo(ScreenDestination.DEMOS) }
+                )
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                ModuleNavigationCard(
+                    title = "Privacy & Security Guide",
+                    subtitle = "Zero-persistence architecture & detector limitations",
+                    icon = Icons.Default.Lock,
+                    iconTint = StatusCleanEmerald,
+                    onClick = { viewModel.navigateTo(ScreenDestination.PRIVACY_INFO) }
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // SCAM PREVENTION GUIDANCE
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
+                    shape = RoundedCornerShape(14.dp),
                     colors = CardDefaults.cardColors(containerColor = NavyCardElevated.copy(alpha = 0.6f)),
                     border = androidx.compose.foundation.BorderStroke(1.dp, NavyBorder)
                 ) {
-                    Row(
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(14.dp),
-                        verticalAlignment = Alignment.Top
+                            .padding(16.dp)
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Info,
-                            contentDescription = "Disclaimer",
-                            tint = CyanAccent,
-                            modifier = Modifier
-                                .size(18.dp)
-                                .padding(top = 2.dp)
-                        )
-                        Spacer(modifier = Modifier.width(10.dp))
-                        Column {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.Info,
+                                contentDescription = null,
+                                tint = CyanAccent,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = "IMPORTANT CYBERSECURITY NOTICE",
+                                text = "SCAM PREVENTION GUIDANCE",
                                 style = MaterialTheme.typography.labelSmall.copy(
                                     fontWeight = FontWeight.Bold,
                                     letterSpacing = 0.8.sp,
-                                    color = CyanAccent,
-                                    fontSize = 11.sp
-                                )
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = "TRUSTLENS inspects structural heuristics and queries threat intelligence repositories. Automated analysis cannot guarantee 100% safety against novel zero-day phishing campaigns. Always verify suspicious communications through official channels.",
-                                style = MaterialTheme.typography.bodySmall.copy(
-                                    color = TextSecondary,
-                                    lineHeight = 17.sp
+                                    color = CyanAccent
                                 )
                             )
                         }
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        SafetyTipItem(
+                            number = "1",
+                            title = "Never share OTPs or verification codes",
+                            description = "Authentic banks, couriers, and platforms never solicit one-time passcodes or PINs via SMS or phone."
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        SafetyTipItem(
+                            number = "2",
+                            title = "HTTPS does not prove legitimacy",
+                            description = "Scam sites readily register free SSL certificates. The padlock icon only indicates transit encryption, not trust."
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        SafetyTipItem(
+                            number = "3",
+                            title = "Verify unexpected fees independently",
+                            description = "Postal sorting fee alerts and account suspensions should always be checked directly on the official app or website."
+                        )
                     }
                 }
 
@@ -483,6 +620,124 @@ fun HomeScreen(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun ModuleNavigationCard(
+    title: String,
+    subtitle: String,
+    icon: ImageVector,
+    iconTint: Color,
+    onClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = NavySurface),
+        border = androidx.compose.foundation.BorderStroke(1.dp, NavyBorder)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(iconTint.copy(alpha = 0.12f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = iconTint,
+                    modifier = Modifier.size(22.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleSmall.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = TextPrimary
+                    )
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        color = TextSecondary,
+                        fontSize = 12.sp,
+                        lineHeight = 16.sp
+                    )
+                )
+            }
+
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                contentDescription = null,
+                tint = TextMuted,
+                modifier = Modifier.size(16.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun SafetyTipItem(
+    number: String,
+    title: String,
+    description: String
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.Top
+    ) {
+        Box(
+            modifier = Modifier
+                .size(20.dp)
+                .clip(CircleShape)
+                .background(NavySurfaceVariant),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = number,
+                style = MaterialTheme.typography.labelSmall.copy(
+                    color = CyanAccent,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 11.sp
+                )
+            )
+        }
+
+        Spacer(modifier = Modifier.width(10.dp))
+
+        Column {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.labelMedium.copy(
+                    color = TextPrimary,
+                    fontWeight = FontWeight.SemiBold
+                )
+            )
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                text = description,
+                style = MaterialTheme.typography.bodySmall.copy(
+                    color = TextSecondary,
+                    fontSize = 11.sp,
+                    lineHeight = 15.sp
+                )
+            )
         }
     }
 }

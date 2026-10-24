@@ -31,10 +31,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.trustlens.app.ui.theme.StatusWarningAmber
 import com.trustlens.app.ui.theme.BlueAccent
 import com.trustlens.app.ui.theme.CyanAccent
 import com.trustlens.app.ui.theme.NavyBorder
 import com.trustlens.app.ui.theme.NavySurface
+import com.trustlens.app.ui.theme.StatusCleanEmerald
+import com.trustlens.app.ui.theme.StatusThreatRed
 import com.trustlens.app.ui.theme.TextMuted
 import com.trustlens.app.ui.theme.TextPrimary
 import com.trustlens.app.ui.theme.TextSecondary
@@ -42,6 +45,8 @@ import com.trustlens.app.ui.theme.TextSecondary
 @Composable
 fun TrustlensHeader(
     onSettingsClick: () -> Unit,
+    backendStatus: String = "checking",
+    isThreatIntelActive: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -133,24 +138,63 @@ fun TrustlensHeader(
 
         Spacer(modifier = Modifier.height(14.dp))
 
-        // Tagline
+        // Official Tagline
         Text(
-            text = "Don't just trust the message. Verify the link.",
+            text = "One click shouldn't cost you your security.",
             style = MaterialTheme.typography.bodyMedium.copy(
-                fontWeight = FontWeight.Medium,
+                fontWeight = FontWeight.SemiBold,
                 color = TextPrimary
             ),
             textAlign = TextAlign.Center
         )
 
-        Spacer(modifier = Modifier.height(2.dp))
+        Spacer(modifier = Modifier.height(4.dp))
 
         Text(
-            text = "Transparent AI & heuristic scam detection for Android",
+            text = "Real-Time Scam Link Detection & Threat Protection",
             style = MaterialTheme.typography.bodySmall.copy(
                 color = TextMuted
             ),
             textAlign = TextAlign.Center
         )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // Backend Connection Status Indicator
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .clip(RoundedCornerShape(20.dp))
+                .background(NavySurface)
+                .border(1.dp, NavyBorder, RoundedCornerShape(20.dp))
+                .padding(horizontal = 12.dp, vertical = 5.dp)
+        ) {
+            val statusColor = when (backendStatus.lowercase()) {
+                "online" -> StatusCleanEmerald
+                "offline" -> StatusThreatRed
+                else -> StatusWarningAmber
+            }
+            val statusText = when (backendStatus.lowercase()) {
+                "online" -> if (isThreatIntelActive) "Backend Online • Threat Intel Active" else "Backend Online • Heuristics Active"
+                "offline" -> "Backend Offline • Tap ⚙ to verify IP"
+                else -> "Checking Backend Connectivity..."
+            }
+
+            Box(
+                modifier = Modifier
+                    .size(8.dp)
+                    .clip(CircleShape)
+                    .background(statusColor)
+            )
+            Spacer(modifier = Modifier.width(7.dp))
+            Text(
+                text = statusText,
+                style = MaterialTheme.typography.labelSmall.copy(
+                    fontSize = 11.sp,
+                    color = TextSecondary,
+                    fontWeight = FontWeight.Medium
+                )
+            )
+        }
     }
 }

@@ -1,9 +1,14 @@
 package com.trustlens.app.data.repository
 
 import com.trustlens.app.data.model.AnalyzeResponse
+import com.trustlens.app.data.model.ComparisonDemoResponse
 import com.trustlens.app.data.model.DemoAnalyzeRequest
 import com.trustlens.app.data.model.DemoScenario
 import com.trustlens.app.data.model.HealthResponse
+import com.trustlens.app.data.model.MessageAnalyzeRequest
+import com.trustlens.app.data.model.MessageAnalyzeResponse
+import com.trustlens.app.data.model.QrAnalyzeRequest
+import com.trustlens.app.data.model.QrAnalyzeResponse
 import com.trustlens.app.data.model.UrlAnalyzeRequest
 import com.trustlens.app.data.remote.NetworkResult
 import com.trustlens.app.data.remote.RetrofitClient
@@ -17,7 +22,10 @@ import java.net.UnknownHostException
 
 interface TrustlensRepository {
     suspend fun analyzeUrl(url: String): NetworkResult<AnalyzeResponse>
+    suspend fun analyzeMessage(message: String, sender: String? = null): NetworkResult<MessageAnalyzeResponse>
+    suspend fun analyzeQr(payload: String): NetworkResult<QrAnalyzeResponse>
     suspend fun runDemo(scenario: DemoScenario, customUrl: String? = null): NetworkResult<AnalyzeResponse>
+    suspend fun getComparisonDemo(): NetworkResult<ComparisonDemoResponse>
     suspend fun checkHealth(): NetworkResult<HealthResponse>
     fun updateBaseUrl(newBaseUrl: String)
     fun getBaseUrl(): String
@@ -53,6 +61,45 @@ class TrustlensRepositoryImpl(
         }
     }
 
+    override suspend fun analyzeMessage(message: String, sender: String?): NetworkResult<MessageAnalyzeResponse> =
+        withContext(Dispatchers.IO) {
+            try {
+                val request = MessageAnalyzeRequest(message = message.trim(), sender = sender?.trim())
+                val response = apiService.analyzeMessage(request)
+                if (response.isSuccessful && response.body() != null) {
+                    NetworkResult.Success(response.body()!!)
+                } else {
+                    val error = RetrofitClient.parseError(response)
+                    NetworkResult.Error(
+                        message = error.message ?: "Message inspection failed with HTTP ${response.code()}",
+                        code = error.code ?: "HTTP_${response.code()}",
+                        statusCode = response.code()
+                    )
+                }
+            } catch (t: Throwable) {
+                handleException(t)
+            }
+        }
+
+    override suspend fun analyzeQr(payload: String): NetworkResult<QrAnalyzeResponse> = withContext(Dispatchers.IO) {
+        try {
+            val request = QrAnalyzeRequest(payload = payload.trim())
+            val response = apiService.analyzeQr(request)
+            if (response.isSuccessful && response.body() != null) {
+                NetworkResult.Success(response.body()!!)
+            } else {
+                val error = RetrofitClient.parseError(response)
+                NetworkResult.Error(
+                    message = error.message ?: "QR analysis failed with HTTP ${response.code()}",
+                    code = error.code ?: "HTTP_${response.code()}",
+                    statusCode = response.code()
+                )
+            }
+        } catch (t: Throwable) {
+            handleException(t)
+        }
+    }
+
     override suspend fun runDemo(scenario: DemoScenario, customUrl: String?): NetworkResult<AnalyzeResponse> =
         withContext(Dispatchers.IO) {
             try {
@@ -72,6 +119,24 @@ class TrustlensRepositoryImpl(
                 handleException(t)
             }
         }
+
+    override suspend fun getComparisonDemo(): NetworkResult<ComparisonDemoResponse> = withContext(Dispatchers.IO) {
+        try {
+            val response = apiService.getComparisonDemo()
+            if (response.isSuccessful && response.body() != null) {
+                NetworkResult.Success(response.body()!!)
+            } else {
+                val error = RetrofitClient.parseError(response)
+                NetworkResult.Error(
+                    message = error.message ?: "Comparison demo failed with HTTP ${response.code()}",
+                    code = error.code ?: "HTTP_${response.code()}",
+                    statusCode = response.code()
+                )
+            }
+        } catch (t: Throwable) {
+            handleException(t)
+        }
+    }
 
     override suspend fun checkHealth(): NetworkResult<HealthResponse> = withContext(Dispatchers.IO) {
         try {
